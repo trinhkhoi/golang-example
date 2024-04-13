@@ -3,23 +3,28 @@ package node3
 import (
 	"Golang/src/data"
 	"fmt"
+	"time"
 )
 
+type Data struct {
+	data.Data
+}
 type Node3 interface {
-	Run(node1 chan data.Data)
+	Run(node1 chan Data)
 	data.Channel
 }
 
-func (data data.Data) Run(node1Ch chan data.Data) {
+func (data Data) Run(node1Ch chan Data) {
 	node1Ch <- data
 }
 
-func (node2 data.Data) GetChannel(ch chan data.Data) {
+func (node2 Data) GetChannel(ch chan Data) {
 	node2 = <-ch
-	append(node2.Node2, "")
+	t := time.Now()
+	append(node2.Node2, t.String())
 	fmt.Println(node2.Node2)
 
 	// send back data to Node1
-	ch1 := make(chan data.Data)
+	ch1 := make(chan Data)
 	go node2.Run(ch1)
 }

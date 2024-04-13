@@ -9,15 +9,19 @@ import (
 	"sync"
 )
 
+type Data struct {
+	data.Data
+}
+
 type Node1 interface {
-	Run(node2 chan data.Data, node3 chan data.Data, m chan data.Data)
+	Run(node2 chan Data, node3 chan Data, m chan Data)
 	data.Channel
 }
 
 /*
 Processing next action for Node1
 */
-func (node1 data.Data) Run(ch2 chan data.Data, ch3 chan data.Data, chM chan data.Data) {
+func (node1 Data) Run(ch2 chan Data, ch3 chan Data, chM chan Data) {
 	var wg sync.WaitGroup
 	wg.Add(3)
 
@@ -42,7 +46,6 @@ func (node1 data.Data) Run(ch2 chan data.Data, ch3 chan data.Data, chM chan data
 		m.NodeM.GetChannel(chM)
 	}()
 
-	close(node1)
 	wg.Wait()
 
 }
@@ -50,14 +53,14 @@ func (node1 data.Data) Run(ch2 chan data.Data, ch3 chan data.Data, chM chan data
 /*
 Handling when the Node1 receive data
 */
-func GetChannel(ch chan data.Data) {
-	var node1 = <-ch
+func GetChannel(ch chan Data) {
+	node1 := <-ch
 	node1.Node1 = true
 	fmt.Println(node1.Node1)
 
-	ch2 := make(chan data.Data)
-	ch3 := make(chan data.Data)
-	chM := make(chan data.Data)
+	ch2 := make(chan Data)
+	ch3 := make(chan Data)
+	chM := make(chan Data)
 
-	Node1.Run(ch2, ch3, chM)
+	node1.Run(ch2, ch3, chM)
 }
