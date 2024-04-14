@@ -1,66 +1,68 @@
 package node1
 
 import (
-	"Golang/src/data"
-	"Golang/src/m"
-	"Golang/src/node2"
-	"Golang/src/node3"
+	Data "Golang/src/data"
+	NodeM "Golang/src/m"
+	Node2 "Golang/src/node2"
+	Node3 "Golang/src/node3"
 	"fmt"
 	"sync"
 )
 
-type Data struct {
-	data.Data
-}
+var ch = make(chan Data.Data)
 
-type Node1 interface {
-	Run(node2 chan Data, node3 chan Data, m chan Data)
-	data.Channel
+type INode1 interface {
+	Run(node2 chan Data.Data, node3 chan Data.Data, m chan Data.Data, data Data.Data)
+	Data.Channel
+	ReceiveData(ch chan Data.Data)
 }
 
 /*
 Processing next action for Node1
 */
-func (node1 Data) Run(ch2 chan Data, ch3 chan Data, chM chan Data) {
+func Run(ch2 chan Data.Data, ch3 chan Data.Data, chM chan Data.Data, data Data.Data) {
 	var wg sync.WaitGroup
 	wg.Add(3)
 
-	// create Thread and send data to Node2
-	go func() {
-		defer wg.Done()
-		ch2 <- node1
-		node2.Node2.GetChannel(ch2)
-	}()
+	// create routine and send data to Node2
+	go sendingDataNextNode(&wg, ch2, data)
+	Node2.ReceiveData(ch2)
 
-	// create Thread and send data to Node3
-	go func() {
-		defer wg.Done()
-		ch3 <- node1
-		node3.Node3.GetChannel(ch3)
-	}()
+	// create routine and send data to Node3
+	go sendingDataNextNode(&wg, ch3, data)
 
-	// create Thread and send data to Node M
-	go func() {
-		defer wg.Done()
-		chM <- node1
-		m.NodeM.GetChannel(chM)
-	}()
+	// create routine and send data to Node M
+	go sendingDataNextNode(&wg, chM, data)
 
 	wg.Wait()
 
 }
 
 /*
-Handling when the Node1 receive data
+Return channel for Node1
 */
-func GetChannel(ch chan Data) {
-	node1 := <-ch
-	node1.Node1 = true
-	fmt.Println(node1.Node1)
+func GetChannel() chan Data.Data {
+	return ch
+}
 
-	ch2 := make(chan Data)
-	ch3 := make(chan Data)
-	chM := make(chan Data)
+/*
+Handling the receive data at Node1
+*/
+func ReceiveData(chNode1 chan Data.Data) {
+	var data = <-chNode1
+	data.Node1 = true
+	fmt.Println("data.Node1: ", data.Node1)
 
-	node1.Run(ch2, ch3, chM)
+	var chN2 = Node2.GetChannel()
+	var chN3 = Node3.GetChannel()
+	var chM = NodeM.GetChannel()
+	Run(chN2, chN3, chM, data)
+}
+
+/*
+Sending data to next channel
+*/
+func sendingDataNextNode(wg *sync.WaitGroup, ch chan Data.Data, data Data.Data) {
+	ch <- data
+	defer wg.Done()
 }

@@ -1,35 +1,47 @@
 package node2
 
 import (
-	"Golang/src/data"
-	"Golang/src/node1"
+	Data "Golang/src/data"
+	Node1 "Golang/src/node1"
 	"fmt"
 	"time"
 )
 
-type Data struct {
-	data.Data
-}
+var ch = make(chan Data.Data)
 
 type Node2 interface {
-	Run(node1 chan Data)
-	data.Channel
+	Run(ch1 chan Data.Data)
+	Data.Channel
 }
 
-func (data Data) Run(node1Ch chan Data) {
-	node1Ch <- data
-	// send back data to Node1
-	node1.GetChannel(node1Ch)
+/*
+Processing next action for Node2
+*/
+func Run(ch1 chan Data.Data) {
+	Node1.ReceiveData(ch1)
 }
 
-func (node2 Data) GetChannel(ch chan Data) {
-	node2 = <-ch
+/*
+Return channel for Node2
+*/
+func GetChannel() chan Data.Data {
+	return ch
+}
+
+/*
+Handling the received data at Node2
+*/
+func ReceiveData(ch2 chan Data.Data) {
+	var data = <-ch2
 	t := time.Now()
-	arrNode2s := append(node2.Node2, t.String())
-	node2.Node2 = arrNode2s
-	fmt.Println(node2.Node2)
+	arrNode2s := append(data.Node2, t.String())
+	data.Node2 = arrNode2s
+	fmt.Println("data.Node2", data.Node2)
 
-	// call Run function to execute the next step
-	ch1 := make(chan Data)
-	node2.Run(ch1)
+	// send back data to Node 1
+	var ch1 = Node1.GetChannel()
+	go func() {
+		ch1 <- data
+	}()
+	Run(ch1)
 }
