@@ -2,28 +2,43 @@ package node3
 
 import (
 	Data "Golang/src/data"
-	"fmt"
+	"sync"
 )
 
-var ch = make(chan Data.Data)
-
-type Node3 interface {
-	Run(nodeCh1 chan Data.Data, nodeTCh chan Data.Data)
-	Data.Channel
+type Node3 struct {
+	Channel   chan Data.Data
+	sentNodeT map[string]string
 }
 
-func Run(node1Ch chan Data.Data, nodeTCh chan Data.Data) {
-	node1Ch <- node3Data
-	node3 = <-ch
-	node3.Node3 = true
-	fmt.Println(node3.Node3)
-
-	// send back data to Node1
-	chT := make(chan Data)
-	ch <- node3
-	node3.Run(ch, chT)
+type INode3 interface {
+	Run(node1, t chan Data.Data, wg *sync.WaitGroup)
+	GetChannel() chan Data.Data
 }
 
-func GetChannel() chan Data.Data {
-	return ch
+/*
+Execute Node3 when receive data
+*/
+func (n *Node3) Run(node1, T chan Data.Data, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for data := range n.Channel {
+		//fmt.Println("Node33")
+		data.Node3 = true
+		_, found := n.sentNodeT[data.Id]
+		if !found && len(data.Node2) > 0 {
+			//fmt.Println("Node3 -> T")
+			if n.sentNodeT == nil {
+				n.sentNodeT = make(map[string]string)
+			}
+			n.sentNodeT[data.Id] = data.Id
+			T <- data
+			node1 <- data
+		}
+	}
+}
+
+/*
+Return Channel for Node3
+*/
+func (n *Node3) GetChannel() chan Data.Data {
+	return n.Channel
 }

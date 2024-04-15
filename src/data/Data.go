@@ -6,7 +6,3 @@ type Data struct {
 	Node2 []string
 	Node3 bool
 }
-
-type Channel interface {
-	GetChannel() chan Data
-}

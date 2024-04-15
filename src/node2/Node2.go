@@ -2,46 +2,34 @@ package node2
 
 import (
 	Data "Golang/src/data"
-	Node1 "Golang/src/node1"
-	"fmt"
+	"sync"
 	"time"
 )
 
-var ch = make(chan Data.Data)
+type Node2 struct {
+	Channel chan Data.Data
+}
 
-type Node2 interface {
-	Run(ch1 chan Data.Data)
-	Data.Channel
+type INode2 interface {
+	Run(node1 chan Data.Data, wg *sync.WaitGroup)
+	GetChannel() chan Data.Data
 }
 
 /*
-Processing next action for Node2
+Execute Node2 when receive data
 */
-func Run(ch1 chan Data.Data) {
-	Node1.ReceiveData(ch1)
+func (n *Node2) Run(node1 chan Data.Data, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for data := range n.Channel {
+		data.Node2 = append(data.Node2, time.Now().UTC().Format(time.RFC3339Nano))
+		node1 <- data
+	}
+
 }
 
 /*
-Return channel for Node2
+Return Channel for Node2
 */
-func GetChannel() chan Data.Data {
-	return ch
-}
-
-/*
-Handling the received data at Node2
-*/
-func ReceiveData(ch2 chan Data.Data) {
-	var data = <-ch2
-	t := time.Now()
-	arrNode2s := append(data.Node2, t.String())
-	data.Node2 = arrNode2s
-	fmt.Println("data.Node2", data.Node2)
-
-	// send back data to Node 1
-	var ch1 = Node1.GetChannel()
-	go func() {
-		ch1 <- data
-	}()
-	Run(ch1)
+func (n *Node2) GetChannel() chan Data.Data {
+	return n.Channel
 }
