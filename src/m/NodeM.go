@@ -28,7 +28,7 @@ type NodeM interface {
 Execute Node M when receive data
 */
 func (m *M) Run(node1 chan Data.Data, wg *sync.WaitGroup) {
-	wg.Done()
+	defer wg.Done()
 	for data := range m.Channel {
 		_, found := m.store[data.Id]
 		if !found && m.store == nil {
@@ -40,6 +40,7 @@ func (m *M) Run(node1 chan Data.Data, wg *sync.WaitGroup) {
 		}
 		//fmt.Printf("NodeM11: %d-%d\n", len(m.store[data.Id]), len(data.Node2))
 		if len(m.store[data.Id]) < len(data.Node2) {
+			wg.Add(1)
 			lastNode2data := data.Node2[len(data.Node2)-1]
 			timestamp := time.Now().UTC().Format(time.RFC3339Nano)
 			m.storeLock.Lock()

@@ -12,8 +12,8 @@ import (
 )
 
 func ThreadS(N int, node1 chan Data.Data, wg *sync.WaitGroup) {
-	defer wg.Done()
 	for i := 0; i < N; i++ {
+		wg.Add(1)
 		data := Data.Data{
 			Id:    fmt.Sprintf("%d", i+1),
 			Node1: false,
@@ -22,6 +22,7 @@ func ThreadS(N int, node1 chan Data.Data, wg *sync.WaitGroup) {
 		}
 		node1 <- data
 	}
+	defer wg.Done()
 }
 
 func main() {
@@ -35,7 +36,6 @@ func main() {
 	t := &NodeT.T{Channel: make(chan Data.Data, N)}
 
 	var wg sync.WaitGroup
-	wg.Add(6)
 	go ThreadS(N, node1.GetChannel(), &wg)
 	go node1.Run(node2.GetChannel(), node3.GetChannel(), m.GetChannel(), &wg)
 	go node2.Run(node1.GetChannel(), &wg)

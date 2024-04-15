@@ -21,6 +21,7 @@ Execute Node2 when receive data
 func (n *Node2) Run(node1 chan Data.Data, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for data := range n.Channel {
+		wg.Add(1)
 		data.Node2 = append(data.Node2, time.Now().UTC().Format(time.RFC3339Nano))
 		node1 <- data
 	}

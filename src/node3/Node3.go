@@ -21,10 +21,12 @@ Execute Node3 when receive data
 func (n *Node3) Run(node1, T chan Data.Data, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for data := range n.Channel {
+
 		//fmt.Println("Node33")
 		data.Node3 = true
 		_, found := n.sentNodeT[data.Id]
 		if !found && len(data.Node2) > 0 {
+			wg.Add(2)
 			//fmt.Println("Node3 -> T")
 			if n.sentNodeT == nil {
 				n.sentNodeT = make(map[string]string)

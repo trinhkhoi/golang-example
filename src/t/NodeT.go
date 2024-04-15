@@ -20,8 +20,8 @@ type NodeT interface {
 Execute Node T when receive data
 */
 func (t *T) Run(wg *sync.WaitGroup) {
-	defer wg.Done()
 	for data := range t.Channel {
+		wg.Done()
 		timestamp := time.Now().UTC().Format(time.RFC3339Nano)
 		fmt.Printf("T%s-%s-%s\n", data.Id, data.Node2[len(data.Node2)-1], timestamp)
 	}
